@@ -17,13 +17,13 @@ const baseRes: CategoryResponse = {
 };
 
 describe('formatCreatedSummary', () => {
-  it('renders a markdown summary ending with "live on <buyerName>"', () => {
+  it('renders a markdown summary ending with "live on <DSP>"', () => {
     const out = formatCreatedSummary({
       res: baseRes,
       categoryName: 'Premium Sports Inventory',
       type: 2,
       items: ['nba', 'nfl', 'mlb'],
-      partnerId: 28,
+      partnerId: 1407, // ttd / the-trade-desk
       buyerId: 4242,
       expirationDate: '2026-12-31',
     });
@@ -31,12 +31,14 @@ describe('formatCreatedSummary', () => {
     expect(out).toContain('**Premium Sports Inventory**');
     expect(out).toContain('- Type: Keyword');
     expect(out).toContain('- Items: 3');
+    expect(out).toContain('- DSP: the-trade-desk (id 1407)');
+    expect(out).toContain('- Buyer account: Acme Inc (buyer id 4242)');
     expect(out).toContain('- Expires: 2026-12-31');
     expect(out).toContain('- Account category ID: 99001');
-    expect(out).toMatch(/The category is now live on Acme Inc \(buyer id 4242\)\.$/);
+    expect(out).toMatch(/The category is now live on The Trade Desk\.$/);
   });
 
-  it('falls back to "your Peer39 account" when buyerName is missing in response', () => {
+  it('falls back to "buyer id N" line when buyerName is missing in response', () => {
     const res: CategoryResponse = {
       ...baseRes,
       value: { ...baseRes.value, buyerName: undefined },
@@ -46,11 +48,12 @@ describe('formatCreatedSummary', () => {
       categoryName: 'cat',
       type: 3,
       items: ['example.com'],
-      partnerId: 28,
+      partnerId: 1407,
       buyerId: 4242,
     });
-    expect(out).toMatch(/The category is now live on your Peer39 account \(buyer id 4242\)\.$/);
+    expect(out).toContain('- Buyer account: buyer id 4242');
     expect(out).toContain('- Type: URL');
+    expect(out).toMatch(/The category is now live on The Trade Desk\.$/);
   });
 
   it('summarizes itemsTypes breakdown when provided', () => {
@@ -60,22 +63,23 @@ describe('formatCreatedSummary', () => {
       type: 2,
       items: ['a', 'b', 'c', 'd'],
       itemsTypes: ['REGULAR', 'REGULAR', 'MUST_HAVE', 'EXCLUDE'],
-      partnerId: 28,
+      partnerId: 1407,
       buyerId: 4242,
     });
     expect(out).toContain('- Items: 4 (2 regular, 1 must_have, 1 exclude)');
   });
 
-  it('resolves partner name when known; falls back to "partner id N" otherwise', () => {
+  it('uses partner slug → prettified display name for the live-on line', () => {
     const known = formatCreatedSummary({
       res: baseRes,
       categoryName: 'cat',
       type: 2,
       items: ['x'],
-      partnerId: 1407, // ttd
+      partnerId: 1407, // -> the-trade-desk
       buyerId: 4242,
     });
     expect(known).toMatch(/- DSP: the-trade-desk \(id 1407\)/);
+    expect(known).toMatch(/The category is now live on The Trade Desk\.$/);
 
     const unknown = formatCreatedSummary({
       res: baseRes,
@@ -86,5 +90,6 @@ describe('formatCreatedSummary', () => {
       buyerId: 4242,
     });
     expect(unknown).toMatch(/- DSP: partner id 99999/);
+    expect(unknown).toMatch(/The category is now live on partner id 99999\.$/);
   });
 });

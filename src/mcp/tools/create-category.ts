@@ -29,9 +29,10 @@ export function formatCreatedSummary(opts: {
 }): string {
   const v = opts.res.value ?? {};
   const typeName = CATEGORY_TYPE_NAMES[opts.type] ?? `type ${opts.type}`;
-  const partnerName = partnerIdToName(opts.partnerId);
-  const partnerLabel = partnerName ? `${partnerName} (id ${opts.partnerId})` : `partner id ${opts.partnerId}`;
-  const buyerLabel = v.buyerName ? `${v.buyerName} (buyer id ${opts.buyerId})` : `your Peer39 account (buyer id ${opts.buyerId})`;
+  const partnerSlug = partnerIdToName(opts.partnerId);
+  const partnerLabel = partnerSlug ? `${partnerSlug} (id ${opts.partnerId})` : `partner id ${opts.partnerId}`;
+  const partnerDisplay = partnerSlug ? prettifyPartnerName(partnerSlug) : `partner id ${opts.partnerId}`;
+  const buyerLabel = v.buyerName ? `${v.buyerName} (buyer id ${opts.buyerId})` : `buyer id ${opts.buyerId}`;
   const categoryName = (typeof v.categoryName === 'string' && v.categoryName) ? v.categoryName : opts.categoryName;
   const partnerCategoryId = (v.partner as { partnerCategoryId?: number | string } | undefined)?.partnerCategoryId;
   const accountCategoryId = v.accountCategoryId;
@@ -53,13 +54,21 @@ export function formatCreatedSummary(opts: {
     `- Type: ${typeName}`,
     itemsLine,
     `- DSP: ${partnerLabel}`,
+    `- Buyer account: ${buyerLabel}`,
   ];
   if (opts.expirationDate) lines.push(`- Expires: ${opts.expirationDate}`);
   if (partnerCategoryId !== undefined) lines.push(`- Partner category ID: ${partnerCategoryId}`);
   if (accountCategoryId !== undefined) lines.push(`- Account category ID: ${accountCategoryId}`);
   lines.push('');
-  lines.push(`The category is now live on ${buyerLabel}.`);
+  lines.push(`The category is now live on ${partnerDisplay}.`);
   return lines.join('\n');
+}
+
+function prettifyPartnerName(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => (w.length === 0 ? w : w[0].toUpperCase() + w.slice(1)))
+    .join(' ');
 }
 
 export const createCategoryTool: ToolDefinition = {
