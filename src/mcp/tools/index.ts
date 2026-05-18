@@ -32,6 +32,10 @@ export function jsonResult(value: unknown): ToolResult {
   return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }] };
 }
 
+export function textResult(text: string): ToolResult {
+  return { content: [{ type: 'text', text }] };
+}
+
 export function formatToolError(err: unknown): ToolResult {
   if (err instanceof MissingPeer39SetupError) return errorResult(err.message);
   if (err instanceof Peer39ApiError) return errorResult(`Peer39 error ${err.code}: ${err.message}`);

@@ -1,11 +1,66 @@
 import { CreateCategoryInputSchema } from '../../peer39/validation.js';
 import { createCategory } from '../../peer39/categories.js';
-import { resolvePartnerId } from '../../peer39/partners.js';
+import { resolvePartnerId, partnerIdToName } from '../../peer39/partners.js';
 import { readCredentialContext } from '../../peer39/credentials.js';
 import { MissingPeer39SetupError } from '../../peer39/errors.js';
 import { config } from '../../config.js';
+import type { CategoryResponse, CategoryType, ItemsType } from '../../peer39/types.js';
 import type { ToolDefinition } from './index.js';
-import { errorResult, formatToolError, jsonResult } from './index.js';
+import { errorResult, formatToolError, textResult } from './index.js';
+
+const CATEGORY_TYPE_NAMES: Record<CategoryType, string> = {
+  2: 'Keyword',
+  3: 'URL',
+  5: 'Mobile App',
+  6: 'CTV App',
+  7: 'Mobile App Keywords',
+  8: 'CTV Keywords',
+};
+
+export function formatCreatedSummary(opts: {
+  res: CategoryResponse;
+  categoryName: string;
+  type: CategoryType;
+  items: string[];
+  itemsTypes?: ItemsType[];
+  partnerId: number;
+  buyerId: number;
+  expirationDate?: string;
+}): string {
+  const v = opts.res.value ?? {};
+  const typeName = CATEGORY_TYPE_NAMES[opts.type] ?? `type ${opts.type}`;
+  const partnerName = partnerIdToName(opts.partnerId);
+  const partnerLabel = partnerName ? `${partnerName} (id ${opts.partnerId})` : `partner id ${opts.partnerId}`;
+  const buyerLabel = v.buyerName ? `${v.buyerName} (buyer id ${opts.buyerId})` : `your Peer39 account (buyer id ${opts.buyerId})`;
+  const categoryName = (typeof v.categoryName === 'string' && v.categoryName) ? v.categoryName : opts.categoryName;
+  const partnerCategoryId = (v.partner as { partnerCategoryId?: number | string } | undefined)?.partnerCategoryId;
+  const accountCategoryId = v.accountCategoryId;
+
+  let itemsLine = `- Items: ${opts.items.length}`;
+  if (opts.itemsTypes && opts.itemsTypes.length > 0) {
+    const counts = opts.itemsTypes.reduce<Record<string, number>>((acc, t) => {
+      acc[t] = (acc[t] ?? 0) + 1;
+      return acc;
+    }, {});
+    const breakdown = Object.entries(counts).map(([k, n]) => `${n} ${k.toLowerCase()}`).join(', ');
+    itemsLine += ` (${breakdown})`;
+  }
+
+  const lines: string[] = [
+    'Category created.',
+    '',
+    `**${categoryName}**`,
+    `- Type: ${typeName}`,
+    itemsLine,
+    `- DSP: ${partnerLabel}`,
+  ];
+  if (opts.expirationDate) lines.push(`- Expires: ${opts.expirationDate}`);
+  if (partnerCategoryId !== undefined) lines.push(`- Partner category ID: ${partnerCategoryId}`);
+  if (accountCategoryId !== undefined) lines.push(`- Account category ID: ${accountCategoryId}`);
+  lines.push('');
+  lines.push(`The category is now live on ${buyerLabel}.`);
+  return lines.join('\n');
+}
 
 export const createCategoryTool: ToolDefinition = {
   name: 'peer39_create_category',
@@ -77,7 +132,16 @@ After step 4 (name confirmed) you have everything. Call this tool. Do NOT do a "
           languageCodes: args.languageCodes,
         },
       }, creds.system);
-      return jsonResult(res);
+      return textResult(formatCreatedSummary({
+        res,
+        categoryName: args.categoryName,
+        type: args.type,
+        items: args.items,
+        itemsTypes: args.itemsTypes,
+        partnerId,
+        buyerId,
+        expirationDate: args.expirationDate,
+      }));
     } catch (err) {
       return formatToolError(err);
     }
