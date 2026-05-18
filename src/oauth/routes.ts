@@ -18,6 +18,7 @@ import {
 } from './tokens.js';
 import { createUser, findUserByEmail, findUserBySub, verifyPassword } from './users.js';
 import { sessionCookieName, readSession, writeSession, clearSession } from './session.js';
+import { hasPeer39Credentials } from '../peer39/credentials.js';
 
 const AUTHORIZE_CODE_TTL_MS = 60_000;
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -92,6 +93,12 @@ export function oauthRouter(db: DB): Router {
       // Not logged in yet — bounce through /login, preserving the authorize query.
       const next = `/authorize?${new URLSearchParams(req.query as Record<string, string>).toString()}`;
       return res.redirect(`/login?next=${encodeURIComponent(next)}`);
+    }
+    if (!hasPeer39Credentials(db, session.sub)) {
+      // Logged in but no Peer39 creds yet — collect them before consent so the
+      // user doesn't bounce out to Claude only to be told "go back to /setup".
+      const next = `/authorize?${new URLSearchParams(req.query as Record<string, string>).toString()}`;
+      return res.redirect(`/setup?next=${encodeURIComponent(next)}`);
     }
     // Render a tiny consent page. Single button = POST /authorize.
     const formAction = '/authorize';

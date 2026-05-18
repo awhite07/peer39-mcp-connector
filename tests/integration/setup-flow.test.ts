@@ -95,4 +95,86 @@ describe('Setup flow', () => {
     const ctxRow = readCredentialContext(db, row.sub);
     expect(ctxRow).toEqual({ buyerId: 4242, system: 'sys-y', userEmail: 'good@example.com' });
   });
+
+  it('GET /authorize routes through /setup when Peer39 creds are missing', async () => {
+    const db = openInMemoryDatabase();
+    const app = buildApp(db);
+    const agent = supertest.agent(app);
+
+    // Register a DCR client so the authorize check has a valid client_id.
+    const reg = await agent
+      .post('/register')
+      .send({ redirect_uris: ['https://claude.ai/callback'], client_name: 'Claude.ai (test)' })
+      .expect(201);
+    const clientId = reg.body.client_id as string;
+
+    // Log in. Use next=/setup so we land somewhere safe after login.
+    await agent
+      .post('/login')
+      .type('form')
+      .send({ email: 'fresh-user@example.com', password: 'correct-horse-battery-staple-1', next: '/setup' })
+      .expect(302);
+
+    // Hit GET /authorize — should bounce through /setup because no Peer39 creds yet.
+    const authorizeUrl = `/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      'https://claude.ai/callback',
+    )}&code_challenge=${'a'.repeat(43)}&code_challenge_method=S256`;
+    const r = await agent.get(authorizeUrl).expect(302);
+    expect(r.headers.location).toMatch(/^\/setup\?next=/);
+    const next = decodeURIComponent(r.headers.location.replace(/^\/setup\?next=/, ''));
+    expect(next.startsWith('/authorize?')).toBe(true);
+    expect(next).toContain(`client_id=${clientId}`);
+  });
+
+  it('POST /setup with next= redirects there after saving (returns to OAuth flow)', async () => {
+    server.use(
+      http.post(`${PEER39_BASE}/api/external/login`, () =>
+        HttpResponse.json({ result: { sessionId: 'sid-good' }, expirationInSeconds: 86400 }),
+      ),
+    );
+    const db = openInMemoryDatabase();
+    const app = buildApp(db);
+    const agent = await loggedInAgent(app, 'continuing-user@example.com');
+    const next = '/authorize?response_type=code&client_id=xyz&redirect_uri=https%3A%2F%2Fclaude.ai%2Fcb&code_challenge=' + 'a'.repeat(43) + '&code_challenge_method=S256';
+    const r = await agent
+      .post('/setup')
+      .type('form')
+      .send({
+        username: 'gooduser',
+        password: 'goodpass',
+        buyerId: '4242',
+        system: 'sys-y',
+        userEmail: 'good@example.com',
+        next,
+      });
+    expect(r.status).toBe(302);
+    expect(r.headers.location).toBe(next);
+  });
+
+  it('POST /setup ignores unsafe next= values (open-redirect protection)', async () => {
+    server.use(
+      http.post(`${PEER39_BASE}/api/external/login`, () =>
+        HttpResponse.json({ result: { sessionId: 'sid-good' }, expirationInSeconds: 86400 }),
+      ),
+    );
+    const db = openInMemoryDatabase();
+    const app = buildApp(db);
+    const agent = await loggedInAgent(app, 'safety-user@example.com');
+    for (const evil of ['https://evil.example.com/x', '//evil.example.com/x', 'javascript:alert(1)']) {
+      const r = await agent
+        .post('/setup')
+        .type('form')
+        .send({
+          username: 'gooduser',
+          password: 'goodpass',
+          buyerId: '4242',
+          system: 'sys-y',
+          userEmail: 'good@example.com',
+          next: evil,
+        });
+      // No redirect; renders success page instead.
+      expect(r.status).toBe(200);
+      expect(r.text).toMatch(/You're all set/);
+    }
+  });
 });

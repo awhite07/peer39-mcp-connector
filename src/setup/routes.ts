@@ -39,8 +39,10 @@ export function setupRouter(db: DB): Router {
 
   router.get('/setup', (req, res) => {
     const session = readSession(req);
+    const safeNext = pickSafeNext(req.query.next);
     if (!session?.sub) {
-      return res.redirect(`/login?next=${encodeURIComponent('/setup')}`);
+      const loginNext = safeNext ? `/setup?next=${encodeURIComponent(safeNext)}` : '/setup';
+      return res.redirect(`/login?next=${encodeURIComponent(loginNext)}`);
     }
     const existing = readCredentialContext(db, session.sub);
     res.set('Content-Type', 'text/html').send(renderSetupPage({
@@ -50,13 +52,16 @@ export function setupRouter(db: DB): Router {
       userEmail: existing?.userEmail ?? session.email ?? '',
       error: null,
       alreadyConfigured: Boolean(existing),
+      next: safeNext,
     }));
   });
 
   router.post('/setup', async (req, res) => {
     const session = readSession(req);
+    const safeNext = pickSafeNext(req.body?.next);
     if (!session?.sub) {
-      return res.redirect(`/login?next=${encodeURIComponent('/setup')}`);
+      const loginNext = safeNext ? `/setup?next=${encodeURIComponent(safeNext)}` : '/setup';
+      return res.redirect(`/login?next=${encodeURIComponent(loginNext)}`);
     }
     const parsed = SetupFormSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -68,6 +73,7 @@ export function setupRouter(db: DB): Router {
         userEmail: typeof req.body.userEmail === 'string' ? req.body.userEmail : '',
         error: `Form validation failed — ${msg}`,
         alreadyConfigured: false,
+        next: safeNext,
       }));
     }
     const data = parsed.data;
@@ -80,6 +86,7 @@ export function setupRouter(db: DB): Router {
         userEmail: data.userEmail,
         error: probe.message ?? 'Peer39 rejected those credentials.',
         alreadyConfigured: false,
+        next: safeNext,
       }));
     }
 
@@ -98,8 +105,22 @@ export function setupRouter(db: DB): Router {
       (req.body as Record<string, unknown>).username = '[CLEARED]';
     }
 
+    if (safeNext) {
+      return res.redirect(safeNext);
+    }
     res.set('Content-Type', 'text/html').send(renderSuccessPage());
   });
 
   return router;
+}
+
+/**
+ * Only honor `next` if it's a same-origin path (starts with a single `/`, no
+ * `//host` schemeless URL). Prevents open-redirect via the form.
+ */
+function pickSafeNext(raw: unknown): string | undefined {
+  if (typeof raw !== 'string' || raw.length === 0) return undefined;
+  if (!raw.startsWith('/')) return undefined;
+  if (raw.startsWith('//')) return undefined;
+  return raw;
 }

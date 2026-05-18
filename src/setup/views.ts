@@ -32,17 +32,21 @@ export interface SetupPageOpts {
   userEmail: string;
   error: string | null;
   alreadyConfigured: boolean;
+  next?: string;
 }
 
 export function renderSetupPage(opts: SetupPageOpts): string {
+  const inOauthFlow = Boolean(opts.next && opts.next.startsWith('/authorize'));
   return `<!doctype html><html><head><meta charset="utf-8"><title>Peer39 setup — MCP Connector</title>
 <style>${CSS}</style></head><body>
 <div class="card">
 <h1>Peer39 setup</h1>
 <p>Signed in as <b>${escapeHtml(opts.email)}</b>. Provide your Peer39 credentials and account info. We store the credentials encrypted at rest (AES-256-GCM, scoped to your account).</p>
+${inOauthFlow ? `<div class="banner">One more step — after saving, you'll be returned to authorize Claude.</div>` : ''}
 ${opts.alreadyConfigured ? `<div class="banner">You already have credentials saved. Submitting this form will <b>overwrite</b> them.</div>` : ''}
 ${opts.error ? `<div class="err">${escapeHtml(opts.error)}</div>` : ''}
 <form method="POST" action="/setup" autocomplete="off">
+  ${opts.next ? `<input type="hidden" name="next" value="${escapeHtml(opts.next)}">` : ''}
   <label>Peer39 username</label><input type="text" name="username" autocomplete="off" required>
   <label>Peer39 password</label><input type="password" name="password" autocomplete="new-password" required>
   <label>Buyer ID <span class="muted">(numeric, from app.peer39.com/accounts)</span></label>
@@ -51,7 +55,7 @@ ${opts.error ? `<div class="err">${escapeHtml(opts.error)}</div>` : ''}
   <input type="text" name="system" value="${escapeHtml(opts.system)}" required>
   <label>Your work email <span class="muted">(attached to categories as "last updated by")</span></label>
   <input type="email" name="userEmail" value="${escapeHtml(opts.userEmail)}" required>
-  <button type="submit">Save</button>
+  <button type="submit">${inOauthFlow ? 'Save & continue' : 'Save'}</button>
 </form>
 <p class="muted">Your password is sent over TLS, encrypted with a per-account nonce, and never written to logs.</p>
 </div>
