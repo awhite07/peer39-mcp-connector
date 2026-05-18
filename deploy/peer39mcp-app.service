@@ -1,0 +1,31 @@
+[Unit]
+Description=Peer39 MCP Connector (Node app)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=peer39mcp
+Group=peer39mcp
+WorkingDirectory=/srv/peer39-mcp-connector
+EnvironmentFile=/etc/peer39-mcp/connector.env
+ExecStart=/usr/bin/node /srv/peer39-mcp-connector/dist/index.js
+Restart=on-failure
+RestartSec=5s
+# Sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/peer39-mcp /var/log/peer39-mcp
+# Resource budget — shared 961MB-RAM box with second-brain chatbot always-on
+MemoryMax=256M
+MemoryHigh=200M
+CPUQuota=50%
+# Log to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=peer39mcp-app
+
+[Install]
+WantedBy=multi-user.target

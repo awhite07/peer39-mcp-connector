@@ -1,0 +1,54 @@
+{
+  "name": "@peer39/mcp-connector",
+  "version": "0.1.0",
+  "description": "Remote MCP Connector for Peer39 Custom Categories — OAuth 2.1 + Streamable HTTP, usable from claude.ai web + mobile.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/copy-views.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "deploy": "bash deploy/deploy.sh"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "peer39",
+    "oauth",
+    "remote-connector"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "argon2": "^0.41.1",
+    "better-sqlite3": "^11.3.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jose": "^5.9.6",
+    "pino": "^9.5.0",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "@types/supertest": "^6.0.2",
+    "msw": "^2.4.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
