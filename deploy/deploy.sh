@@ -12,9 +12,7 @@ ssh "$DROPLET" "
   set -euo pipefail
   sudo -u peer39mcp git -C $REMOTE_DIR fetch --quiet origin
   sudo -u peer39mcp git -C $REMOTE_DIR reset --hard origin/main
-  cd $REMOTE_DIR
-  sudo -u peer39mcp npm ci --omit=dev --quiet
-  sudo -u peer39mcp npm run build
+  sudo -u peer39mcp bash -c 'cd $REMOTE_DIR && npm ci --omit=dev --quiet && npm run build'
   sudo systemctl restart peer39mcp-app.service
   sleep 2
   sudo systemctl is-active peer39mcp-app.service
