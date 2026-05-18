@@ -14,7 +14,9 @@ ssh "$DROPLET" "
   sudo -u peer39mcp git -C $REMOTE_DIR reset --hard origin/main
   sudo -u peer39mcp bash -c 'cd $REMOTE_DIR && npm ci --quiet && npm run build && npm prune --omit=dev --quiet'
   sudo systemctl restart peer39mcp-app.service
-  sleep 2
+  # Node service takes ~3s after restart to bind its port; sleep long enough
+  # that the post-restart smoke test doesn't race it.
+  sleep 5
   sudo systemctl is-active peer39mcp-app.service
 "
 
