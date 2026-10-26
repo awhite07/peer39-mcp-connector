@@ -2,6 +2,14 @@
 
 Remote MCP Connector for Claude (web + mobile + desktop). Hosted at `https://mcp-connector.scatter-brain.ai` on the shared `alex-second-brain` DigitalOcean droplet (`174.138.92.250`).
 
+## Scope — stay inside this project
+
+This project is self-contained. When Claude Code runs from this directory, stay within `peer39-mcp-connector/` and its subdirectories.
+Do NOT read, list, search, import from, create, or modify files in any sibling project or parent directory — not via file tools, not via Bash (`ls ..`, `cat ../x`, `find`/`grep` rooted above this directory), not via subagents — unless Alex asks in the current conversation. If a task seems to need something outside, stop and ask first, naming the path. Full rule: **Project Isolation** in `/Volumes/Storage/ai-tools/CLAUDE.md`.
+
+**Exceptions** (read literally — named paths only, read-only unless stated):
+- Workspace-level: recording memories via `node /Volumes/Storage/ai-tools/mem0-cli.js ...`, appending to this project's second-brain file (`/Volumes/Storage/ai-tools/second-brain/projects/peer39-mcp-connector.md`), and reading workspace-root shared modules (`cli_status.py`, `peer39_brand_colors.py`, `peer39_brand_colors.js`, logos)
+
 ## Auto-deploy on push — REQUIRED
 
 **After every successful `git push` from this repo, immediately run:**
