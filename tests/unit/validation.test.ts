@@ -31,6 +31,37 @@ describe('validation schemas', () => {
     expect(r.success).toBe(false);
   });
 
+  it('accepts a podcast keyword category (type 10)', () => {
+    const r = CreateCategoryInputSchema.safeParse({
+      type: 10,
+      partnerId: 'the-trade-desk',
+      items: ['true crime', 'murder mystery'],
+      categoryName: 'True Crime Podcasts',
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects itemsTypes on podcast keyword categories', () => {
+    const r = CreateCategoryInputSchema.safeParse({
+      type: 10,
+      partnerId: 'the-trade-desk',
+      items: ['true crime'],
+      itemsTypes: ['EXCLUDE'],
+      categoryName: 'podcasts',
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('rejects unsupported category types', () => {
+    const r = CreateCategoryInputSchema.safeParse({
+      type: 9,
+      partnerId: 'the-trade-desk',
+      items: ['a'],
+      categoryName: 'nine',
+    });
+    expect(r.success).toBe(false);
+  });
+
   it('rejects itemsTypes length mismatch', () => {
     const r = CreateCategoryInputSchema.safeParse({
       type: 2,

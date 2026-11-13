@@ -20,7 +20,8 @@ export const CategoryTypeSchema = z.union([
   z.literal(6),
   z.literal(7),
   z.literal(8),
-]).describe('2=Keyword, 3=URL, 5=Mobile App, 6=CTV App, 7=Mobile App Keywords, 8=CTV Keywords');
+  z.literal(10),
+]).describe('2=Keyword, 3=URL, 5=Mobile App, 6=CTV App, 7=Mobile App Keywords, 8=CTV Keywords, 10=Podcast Keywords');
 
 export const ItemsTypeSchema = z.enum(['REGULAR', 'MUST_HAVE', 'EXCLUDE']);
 

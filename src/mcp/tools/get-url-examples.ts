@@ -14,9 +14,9 @@ export const getUrlExamplesTool: ToolDefinition = {
 ONLY for **web keyword categories (type 2)** — i.e. categories that match webpage content by keyword. URL examples are not meaningful for other category types:
 - type 3 (URL): items are already URLs; nothing to preview.
 - type 5 (Mobile App) and type 6 (CTV App): apps don't have URL pages to match.
-- type 7 (Mobile App Keywords) and type 8 (CTV Keywords): these match app metadata, not the open web — URL previews don't apply.
+- type 7 (Mobile App Keywords), type 8 (CTV Keywords) and type 10 (Podcast Keywords): these match app / content metadata, not the open web — URL previews don't apply.
 
-If the user asks for a URL preview while planning a non-type-2 category, tell them the preview is only meaningful for web keyword categories and don't call this tool. If they want to validate a CTV or mobile-app keyword set, suggest creating a small test category and listing it back, or talking with their Peer39 integration manager about app-side validation tools.
+If the user asks for a URL preview while planning a non-type-2 category, tell them the preview is only meaningful for web keyword categories and don't call this tool. If they want to validate a CTV, mobile-app or podcast keyword set, suggest creating a small test category and listing it back, or talking with their Peer39 integration manager about app-side validation tools.
 
 ## Args
 - languages (required): array of language codes. The wildcard here is lowercase "all" (not "All" like the category endpoints).

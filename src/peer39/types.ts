@@ -1,5 +1,5 @@
-export type CategoryType = 2 | 3 | 5 | 6 | 7 | 8;
-// 2=Keyword, 3=URL, 5=Mobile App, 6=CTV App, 7=Mobile App Keywords, 8=CTV Keywords
+export type CategoryType = 2 | 3 | 5 | 6 | 7 | 8 | 10;
+// 2=Keyword, 3=URL, 5=Mobile App, 6=CTV App, 7=Mobile App Keywords, 8=CTV Keywords, 10=Podcast Keywords
 
 export type ItemsType = 'REGULAR' | 'MUST_HAVE' | 'EXCLUDE';
 

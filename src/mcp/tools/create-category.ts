@@ -15,6 +15,7 @@ const CATEGORY_TYPE_NAMES: Record<CategoryType, string> = {
   6: 'CTV App',
   7: 'Mobile App Keywords',
   8: 'CTV Keywords',
+  10: 'Podcast Keywords',
 };
 
 export function formatCreatedSummary(opts: {
@@ -81,12 +82,13 @@ The user wants to define a new contextual targeting or brand-safety list — key
 ## Conversation order — ask the user these things, IN THIS ORDER. Do NOT ask everything at once.
 
 1. **type** — what kind of category?
-   - 2 = Keyword, 3 = URL, 5 = Mobile App, 6 = CTV App, 7 = Mobile App Keywords, 8 = CTV Keywords
+   - 2 = Keyword, 3 = URL, 5 = Mobile App, 6 = CTV App, 7 = Mobile App Keywords, 8 = CTV Keywords, 10 = Podcast Keywords
+   - If the user says the campaign runs on podcasts, use 10 (Podcast Keywords) without asking.
 2. **partnerId** (DSP) — which DSP or platform should this category sync to? Always ask the user. Do not fall back to a saved default.
    - Use this exact phrasing template, substituting the actual category type:
        _"Which DSP or platform do you want to build this <category-type> category for?"_
    - Accept either a slug like "the-trade-desk" / "xandr" / "basis" / "mediamath" or a numeric partner ID.
-   - <category-type> should be the human-readable type name: "keyword", "URL", "mobile app", "CTV app", "mobile-app keyword", "CTV keyword". Don't say "type 2 keyword" — just "keyword".
+   - <category-type> should be the human-readable type name: "keyword", "URL", "mobile app", "CTV app", "mobile-app keyword", "CTV keyword", "podcast keyword". Don't say "type 2 keyword" — just "keyword".
 3. **items** — the actual keywords / URLs / app IDs. Non-empty array; each ≤1024 chars.
    - Offer BOTH paths in your prompt. Use this phrasing pattern:
        _"Now, what <items> do you want in the category? Share them as a list and I'll set them up — **or** we can discuss the types of content / <items> that would fit best and brainstorm them together."_
@@ -109,7 +111,7 @@ The user wants to define a new contextual targeting or brand-safety list — key
 After step 4 (name confirmed) you have everything. Call this tool. Do NOT do a "before I create, is there anything else you want to set?" pass — that surfaces fields the user shouldn't have to think about.
 
 ## Types reference
-2 = Keyword, 3 = URL, 5 = Mobile App, 6 = CTV App, 7 = Mobile App Keywords, 8 = CTV Keywords`,
+2 = Keyword, 3 = URL, 5 = Mobile App, 6 = CTV App, 7 = Mobile App Keywords, 8 = CTV Keywords, 10 = Podcast Keywords`,
   inputSchema: CreateCategoryInputSchema,
   async handler(ctx, rawArgs) {
     const parsed = CreateCategoryInputSchema.safeParse(rawArgs);
