@@ -35,7 +35,9 @@ export function formatCreatedSummary(opts: {
   const partnerDisplay = partnerSlug ? prettifyPartnerName(partnerSlug) : `partner id ${opts.partnerId}`;
   const buyerLabel = v.buyerName ? `${v.buyerName} (buyer id ${opts.buyerId})` : `buyer id ${opts.buyerId}`;
   const categoryName = (typeof v.categoryName === 'string' && v.categoryName) ? v.categoryName : opts.categoryName;
-  const partnerCategoryId = (v.partner as { partnerCategoryId?: number | string } | undefined)?.partnerCategoryId;
+  // Peer39 returns the ID as partner.categoryId; the edit/delete tools take it as partnerCategoryId.
+  const partnerObj = v.partner as { partnerCategoryId?: number | string; categoryId?: number | string } | undefined;
+  const partnerCategoryId = partnerObj?.partnerCategoryId ?? partnerObj?.categoryId;
   const accountCategoryId = v.accountCategoryId;
 
   let itemsLine = `- Items: ${opts.items.length}`;

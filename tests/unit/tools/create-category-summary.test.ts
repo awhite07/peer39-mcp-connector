@@ -56,6 +56,23 @@ describe('formatCreatedSummary', () => {
     expect(out).toMatch(/The category is now live on The Trade Desk\.$/);
   });
 
+  it('shows the partner category ID from partner.categoryId (live API shape)', () => {
+    const res: CategoryResponse = {
+      ...baseRes,
+      value: { ...baseRes.value, accountCategoryId: undefined, partner: { id: 841, categoryId: 264794 } as never },
+    };
+    const out = formatCreatedSummary({
+      res,
+      categoryName: 'Podcasts',
+      type: 10,
+      items: ['true crime'],
+      partnerId: 841,
+      buyerId: 4242,
+    });
+    expect(out).toContain('- Type: Podcast Keywords');
+    expect(out).toContain('- Partner category ID: 264794');
+  });
+
   it('summarizes itemsTypes breakdown when provided', () => {
     const out = formatCreatedSummary({
       res: baseRes,
